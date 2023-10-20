@@ -1,13 +1,15 @@
 #!/bin/bash
 
+set -e
+
 rm -rvf *-10m.json *-50m.json *-110m.json
 mkdir -p build
 
 countries_shp() {
   if [ ! -f build/ne_$1_admin_0_countries.shp ]; then
-    curl -o build/ne_$1_admin_0_countries.zip https://naciscdn.org/naturalearth/$1/cultural/ne_$1_admin_0_countries.zip
+    curl -o build/ne_$1_admin_0_countries.zip https://naciscdn.org/naturalearth/$1/cultural/ne_$1_admin_0_countries_nld.zip
     unzip -od build build/ne_$1_admin_0_countries.zip
-    chmod a-x build/ne_$1_admin_0_countries.*
+    chmod a-x build/ne_$1_admin_0_countries_nld.*
   fi
 }
 
@@ -22,7 +24,7 @@ land_shp() {
 countries() {
   countries_shp $1
   geo2topo -q 1e5 -n countries=<( \
-      shp2json --encoding utf8 -n build/ne_$1_admin_0_countries.shp \
+      shp2json --encoding utf8 -n build/ne_$1_admin_0_countries_nld.shp \
         | ndjson-map 'i = d.properties.ISO_N3, d.id = i === "-99" ? (d.properties.SOV_A3 === "NOR" ? "578" : undefined) : i, d.properties = {name: d.properties.NAME}, d' \
         | geostitch -n) \
     | topomerge land=countries \
